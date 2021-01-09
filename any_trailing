@@ -1,0 +1,209 @@
+
+
+########### how about moving this in the main() function. #######################################
+########### If any other functions need them, just pass them to that function as arguments #######
+#dnaSeq1 = 'ATGggtaaTtgcaacggggCATCCAAG'
+dnaSeq1 = "atggatttATCtgctcTTCgcgttgaaga"
+#dnaSeq =dnaSeq1.upper()
+dnaSeq = dnaSeq1.upper()[:len(dnaSeq1)-len(dnaSeq1)%3]   ####### need to remove the trailing here, see Note 1 in the proeject description ####
+
+SeqE = dnaSeq                                   # test string from example 1
+
+def main():
+    
+    STANDARD_GENETIC_CODE = {
+    'ATA':'I', 'ATC':'I', 'ATT':'I', 'ATG':'M',
+    'ACA':'T', 'ACC':'T', 'ACG':'T', 'ACT':'T',
+    'AAC':'N', 'AAT':'N', 'AAA':'K', 'AAG':'K',
+    'AGC':'S', 'AGT':'S', 'AGA':'R', 'AGG':'R',
+    'CTA':'L', 'CTC':'L', 'CTG':'L', 'CTT':'L',
+    'CCA':'P', 'CCC':'P', 'CCG':'P', 'CCT':'P',
+    'CAC':'H', 'CAT':'H', 'CAA':'Q', 'CAG':'Q',
+    'CGA':'R', 'CGC':'R', 'CGG':'R', 'CGT':'R',
+    'GTA':'V', 'GTC':'V', 'GTG':'V', 'GTT':'V',
+    'GCA':'A', 'GCC':'A', 'GCG':'A', 'GCT':'A',
+    'GAC':'D', 'GAT':'D', 'GAA':'E', 'GAG':'E',
+    'GGA':'G', 'GGC':'G', 'GGG':'G', 'GGT':'G',
+    'TCA':'S', 'TCC':'S', 'TCG':'S', 'TCT':'S',
+    'TTC':'F', 'TTT':'F', 'TTA':'L', 'TTG':'L',
+    'TAC':'Y', 'TAT':'Y', 'TAA':'_', 'TAG':'_',
+    'TGC':'C', 'TGT':'C', 'TGA':'_', 'TGG':'W'}
+    
+    protein3LetterSeq = proteinTranslation(dnaSeq, STANDARD_GENETIC_CODE)
+    separator = ""
+    pep = separator.join(protein3LetterSeq)
+       
+    newseqs = []
+    
+    back_trans(pep, 0, newseqs)    
+
+    print(len(newseqs[0]), len(dnaSeq))    ############# The length of dnaSeq and sequences in newseqs are different, ##########
+                             ############# because the trailing of dnaSeq was not removed (not the mulplication of three) ######
+   
+    ########## consider looping over newseqs only. In each loop compare ###########
+    ########## the new sequence with dnaSeq using the seqcomp() function ##########
+    h = len(newseqs) * [dnaSeq]             # make a comparable list with all dnaSeq
+    
+    k = list(zip(newseqs, h))               # make a combined list using zip iterator
+    
+   
+    m = []                                  # m is a list of all target New sequence
+    for x, y in k:
+        if x != y:                          # if the new sequence is not equal to dnaSeq
+            if seqcomp(x, y) < 2:           # find out the sequences with allowed variation
+                m.append(x)
+    print(m)
+    print(len(m))
+    ##for i in m:
+        
+        ##pass
+    
+    ######################################################################################
+    ti = 'original sequence : '
+    ti1 = dnaSeq1
+    u = 'after formatting : '
+    u1 = dnaSeq
+    v = 'Peptide : '
+    v1 = pep
+    ##w = 'reverse complement : '
+    ##w1 = 'reverse complement'
+    x = 'Restriction enzymes : '
+    x1 = sorted(sf)
+    y = 'N of allowed mutations : '
+    y1 = "1"
+    z = '=================================================='        
+    zi = '>>> New sequence 1 : '
+    zi1 = m[0]
+    zhi = 'Enzymes only in original sequence : '    
+    ##zhi1 = 
+    d = 'Enzymes only in the new sequence : '
+    ##d1 = 
+    ###with open('chan_chi_kwong_project_2.txt', 'a') as out:   ########## need to use "w" instead of "a" ##############
+    with open('chan_chi_kwong_project_2.txt', 'w') as out: 
+        out.write('{}{}\n'.format(ti, ti1))
+        out.write('{}{}\n'.format(u, u1))
+        out.write('{}{}\n'.format(v, v1))
+        ##out.write('{}{}\n'.format(w, w1))
+        out.write('{}{}\n'.format(x, x1))
+        out.write('{}{}\n'.format(y, y1))
+        ################### use a for-loop to loop over all newseqs ###############
+        for i in range(len(newseqs)):
+            out.write('{}\n'.format(z))
+            out.write(f">>> New sequence {i}: {newseqs[i]}\n")
+            ########### TODO: need to write a function to get exclusive elements in two list: ##############################
+            ################## a list of enzymes about the original list, another list of enzymes about newseqs[i] #########
+            #out.write('{}{}\n'.format(zi, zi1 ))
+            out.write('{}\n'.format(zhi))
+            out.write('{}\n'.format(d))
+        
+        
+            
+
+def proteinTranslation(seq, geneticCode):
+    """ This function translates a nucleic acid sequence into 
+        a protein sequence, until the end or until it comes 
+        across a stop codon """    
+    ############### Consider setting proteinSeq as a string instead of a list ###############
+    proteinSeq = []
+    i = 0                                       # the position of the first letter in the codon
+    while i+2 < len(seq):                       # the loop continues as long as there are still at least 3 letters remaining 
+        codon = seq[i:i+3]                      
+        aminoAcid = geneticCode[codon]        
+        
+        ################# use "==" instead of "is" below #############
+        #if aminoAcid is "_":               ## Found stop codon
+        if aminoAcid == "_":
+            break                          ## when there is a stop codon, the break is triggered
+        proteinSeq.append(aminoAcid)
+        i += 3                                  # increase the index by three for the next round
+    return proteinSeq
+
+def back_trans(pep, pos, newseqs, s=''):    
+          
+    if pos == len(pep) - 1:
+        for codon in bt[pep[pos]]:
+            newseqs.append(s+codon)
+        
+        return newseqs
+        
+    for codon in bt[pep[pos]]:        
+        back_trans(pep, pos+1, newseqs, s+codon)
+
+
+
+def reverse_complement(dna):
+    
+    complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
+    
+    return ''.join([complement[base] for base in dna[::-1]])
+
+SeqD = reverse_complement(SeqE)
+
+##sN1f = get_restriction_enzyme_list(m[0])     # to get the restriction enzymes from m[position_0]
+##print(sN1f)
+##sN1r = reverse_complement(sN1f)
+##print(sN1r)
+
+###################### no need to create this function, because "motif in input.upper()" itself will return True or False ######
+# a function to check sequence pattern in an input sequence
+def contains_motif(motif, input): 
+    
+    if motif in input.upper():
+        return True
+    else:
+        return False
+    
+def Read_Two_Column_File(f):
+    with open(f, 'r') as data:
+        x = []
+        y = []
+        for eachline in data:
+            p = eachline.split()            
+            x.append(p[0])   ####### we can create the dictionary directly using enzyme_dict[p[0]] = p[1] ########### 
+            #y.append(p[1])       
+            y.append(p[1].upper())     #### also need to format the sequence here #############3
+    return x, y
+
+def get_restriction_enzyme_list(DNA):
+    
+    #x, y = Read_Two_Column_File('/Users/pat/documents/_____2_(project)/enzymes_emboss_e.011.txt')
+    x, y = Read_Two_Column_File('enzymes_emboss_e.011.txt')
+    
+    dictionary = dict(zip(x, y))
+    
+    enzymes = dictionary    
+        
+    DNA = DNA.upper()
+    temp_list = []
+    for enzyme_name in enzymes.keys():                          # loop over each enzyme_name           
+        position = 0
+        ########### no need to use position counter here, because the "in" operator will do the job for you #########3
+        #while contains_motif( enzymes[enzyme_name], DNA[ position: ]) :
+        if enzymes[enzyme_name] in DNA:
+    
+            if enzyme_name not in temp_list:
+                temp_list.append(enzyme_name)                
+                
+            #position = position + 1                            # current position + 1, moving forward by 1 nucleotide
+            
+    return(temp_list)
+                
+sd = get_restriction_enzyme_list(SeqD)
+se = get_restriction_enzyme_list(SeqE)
+
+
+
+sf = set(sd + se)                                               # a set to contain the restriction enzymes without duplication
+
+## Compare 2 sequences and returns a value with 
+## how many different elements they have
+def seqcomp(s1, s2):
+    p = len(s1)                                                 # to set the maximum value of p by counting the length
+    for x, y in zip(s1, s2):                                    # for each tuple in zip iterator,
+        if x == y:                                              # 
+            p -= 1                                              # the value of p decreases one when there is a same character 
+    
+    return p                                                    # p is used to indicate the allowed variation
+
+
+main()
